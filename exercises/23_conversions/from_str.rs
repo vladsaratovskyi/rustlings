@@ -21,7 +21,7 @@ enum ParsePersonError {
     BadLen,
     // Empty name field
     NoName,
-    // Wrapped error from parse::<u8>()
+    // Wrapped error from parse::<usize>()
     ParseInt(ParseIntError),
 }
 
@@ -40,8 +40,24 @@ enum ParsePersonError {
 // 6. If parsing the age fails, return the error `ParsePersonError::ParseInt`.
 impl FromStr for Person {
     type Err = ParsePersonError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {}
+    
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.is_empty() {
+            Err(ParsePersonError::BadLen)
+        } else {
+            let p: Vec<&str> = s.split(',').collect();
+            if p.len() != 2 {
+                Err(ParsePersonError::BadLen)
+            } else if p[0].len() == 0 {
+                Err(ParsePersonError::NoName)
+            } else { 
+                match p[1].parse::<u8>() {
+                    Ok(a) => Ok(Person { name: p[0].to_string(), age: a }),
+                    Err(a) => Err(ParsePersonError::ParseInt(a)),
+                }
+            }
+        }
+    }
 }
 
 fn main() {
